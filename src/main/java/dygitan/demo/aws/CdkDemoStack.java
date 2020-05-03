@@ -57,5 +57,10 @@ public class CdkDemoStack extends Stack {
                 .value("igw-demo")
                 .build()))
             .build();
+
+        CfnVPCGatewayAttachment.Builder.create(this, "DemoInternetGatewayAttachment")
+            .internetGatewayId(cfnInternetGateway.getRef())
+            .vpcId(cfnVpc.getRef())
+            .build();
     }
 }
