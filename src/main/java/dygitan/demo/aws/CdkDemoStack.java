@@ -1,10 +1,7 @@
 package dygitan.demo.aws;
 
 import software.amazon.awscdk.core.*;
-import software.amazon.awscdk.services.ec2.CfnRouteTable;
-import software.amazon.awscdk.services.ec2.CfnSubnet;
-import software.amazon.awscdk.services.ec2.CfnSubnetRouteTableAssociation;
-import software.amazon.awscdk.services.ec2.CfnVPC;
+import software.amazon.awscdk.services.ec2.*;
 
 import java.util.Arrays;
 
@@ -52,6 +49,13 @@ public class CdkDemoStack extends Stack {
         CfnSubnetRouteTableAssociation.Builder.create(this, "DemoSubnetRouteTableLink")
             .routeTableId(cfnRouteTable.getRef())
             .subnetId(cfnSubnet.getRef())
+            .build();
+
+        CfnInternetGateway cfnInternetGateway = CfnInternetGateway.Builder.create(this, "DemoInternetGateway")
+            .tags(Arrays.asList(CfnTag.builder()
+                .key("Name")
+                .value("igw-demo")
+                .build()))
             .build();
     }
 }
