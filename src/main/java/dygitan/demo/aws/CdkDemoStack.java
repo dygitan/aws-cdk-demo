@@ -3,6 +3,7 @@ package dygitan.demo.aws;
 import software.amazon.awscdk.core.*;
 import software.amazon.awscdk.services.ec2.CfnRouteTable;
 import software.amazon.awscdk.services.ec2.CfnSubnet;
+import software.amazon.awscdk.services.ec2.CfnSubnetRouteTableAssociation;
 import software.amazon.awscdk.services.ec2.CfnVPC;
 
 import java.util.Arrays;
@@ -46,6 +47,11 @@ public class CdkDemoStack extends Stack {
                 .key("Name")
                 .value("rtb-demo")
                 .build()))
+            .build();
+
+        CfnSubnetRouteTableAssociation.Builder.create(this, "DemoSubnetRouteTableLink")
+            .routeTableId(cfnRouteTable.getRef())
+            .subnetId(cfnSubnet.getRef())
             .build();
     }
 }
