@@ -1,6 +1,7 @@
 package dygitan.demo.aws;
 
 import software.amazon.awscdk.core.*;
+import software.amazon.awscdk.services.ec2.CfnRouteTable;
 import software.amazon.awscdk.services.ec2.CfnSubnet;
 import software.amazon.awscdk.services.ec2.CfnVPC;
 
@@ -36,6 +37,14 @@ public class CdkDemoStack extends Stack {
             .tags(Arrays.asList(CfnTag.builder()
                 .key("Name")
                 .value("subnet-az-2a-demo")
+                .build()))
+            .build();
+
+        CfnRouteTable cfnRouteTable = CfnRouteTable.Builder.create(this, "DemoRouteTable")
+            .vpcId(cfnVpc.getRef())
+            .tags(Arrays.asList(CfnTag.builder()
+                .key("Name")
+                .value("rtb-demo")
                 .build()))
             .build();
     }
