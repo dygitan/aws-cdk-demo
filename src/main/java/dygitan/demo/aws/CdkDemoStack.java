@@ -1,6 +1,7 @@
 package dygitan.demo.aws;
 
 import software.amazon.awscdk.core.*;
+import software.amazon.awscdk.services.ec2.CfnSubnet;
 import software.amazon.awscdk.services.ec2.CfnVPC;
 
 import java.util.Arrays;
@@ -24,6 +25,17 @@ public class CdkDemoStack extends Stack {
             .tags(Arrays.asList(CfnTag.builder()
                 .key("Name")
                 .value("vpc-demo")
+                .build()))
+            .build();
+
+        CfnSubnet cfnSubnet = CfnSubnet.Builder.create(this, "DemoSubnet")
+            .availabilityZone("ap-southeast-2a")
+            .cidrBlock("192.168.0.0/24")
+            .mapPublicIpOnLaunch(true)
+            .vpcId(cfnVpc.getRef())
+            .tags(Arrays.asList(CfnTag.builder()
+                .key("Name")
+                .value("subnet-az-2a-demo")
                 .build()))
             .build();
     }
