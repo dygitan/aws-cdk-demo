@@ -69,5 +69,26 @@ public class CdkDemoStack extends Stack {
             .gatewayId(cfnInternetGateway.getRef())
             .destinationCidrBlock("0.0.0.0/0")
             .build();
+
+        CfnSecurityGroup cfnSecurityGroup = CfnSecurityGroup.Builder.create(this, "DemoSecurityGroup")
+            .groupName("allow-http-ssh-traffic")
+            .groupDescription("Allow web traffic on port 80 and ssh traffic on port 22")
+            .securityGroupIngress(Arrays.asList(
+                CfnSecurityGroup.IngressProperty.builder()
+                    .cidrIp("0.0.0.0/0")
+                    .description("Allow HTTP traffic")
+                    .fromPort(80)
+                    .toPort(80)
+                    .ipProtocol("tcp")
+                    .build(),
+                CfnSecurityGroup.IngressProperty.builder()
+                    .cidrIp("0.0.0.0/0")
+                    .description("Allow SSH traffic")
+                    .fromPort(22)
+                    .toPort(22)
+                    .ipProtocol("tcp")
+                    .build()))
+            .vpcId(cfnVpc.getRef())
+            .build();
     }
 }
