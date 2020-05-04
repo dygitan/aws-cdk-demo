@@ -20,6 +20,7 @@ public class CdkDemoStack extends Stack {
 
         CfnVPC cfnVpc = CfnVPC.Builder.create(this, "DemoVpc")
             .cidrBlock("192.168.0.0/22")
+            .enableDnsHostnames(true)
             .instanceTenancy("default")
             .tags(Arrays.asList(CfnTag.builder()
                 .key("Name")
@@ -61,6 +62,12 @@ public class CdkDemoStack extends Stack {
         CfnVPCGatewayAttachment.Builder.create(this, "DemoInternetGatewayAttachment")
             .internetGatewayId(cfnInternetGateway.getRef())
             .vpcId(cfnVpc.getRef())
+            .build();
+
+        CfnRoute.Builder.create(this, "DemoRoute")
+            .routeTableId(cfnRouteTable.getRef())
+            .gatewayId(cfnInternetGateway.getRef())
+            .destinationCidrBlock("0.0.0.0/0")
             .build();
     }
 }
