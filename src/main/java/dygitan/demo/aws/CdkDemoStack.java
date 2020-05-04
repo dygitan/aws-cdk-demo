@@ -90,5 +90,18 @@ public class CdkDemoStack extends Stack {
                     .build()))
             .vpcId(cfnVpc.getRef())
             .build();
+
+        CfnInstance.Builder.create(this, "DemoEc2Instance")
+            .availabilityZone("ap-southeast-2a")
+            .imageId("ami-0a1a4d97d4af3009b") // Ubuntu, 20.04 LTS
+            .instanceType(InstanceType.of(InstanceClass.BURSTABLE2, InstanceSize.MICRO).toString())
+            .keyName("ec2-demo-instance")
+            .subnetId(cfnSubnet.getRef())
+            .securityGroupIds(Arrays.asList(cfnSecurityGroup.getRef()))
+            .tags(Arrays.asList(CfnTag.builder()
+                .key("Name")
+                .value("demo-instance")
+                .build()))
+            .build();
     }
 }
