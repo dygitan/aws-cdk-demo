@@ -91,6 +91,15 @@ public class CdkDemoStack extends Stack {
             .vpcId(cfnVpc.getRef())
             .build();
 
+        UserData userData = UserData.forLinux(LinuxUserDataOptions.builder()
+            .shebang("!/bin/bash")
+            .build());
+        userData.addCommands(
+            "sudo apt-get update",
+            "sudo apt-get install nginx -y",
+            "sudo nginx"
+        );
+
         CfnInstance.Builder.create(this, "DemoEc2Instance")
             .availabilityZone("ap-southeast-2a")
             .imageId("ami-0a1a4d97d4af3009b") // Ubuntu, 20.04 LTS
@@ -102,6 +111,7 @@ public class CdkDemoStack extends Stack {
                 .key("Name")
                 .value("demo-instance")
                 .build()))
+            .userData(Fn.base64(userData.render()))
             .build();
     }
 }
