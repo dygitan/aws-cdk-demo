@@ -1,24 +1,32 @@
-package dygitan.demo.aws;
+package dygitan.demo.aws.shared;
 
 import software.amazon.awscdk.core.*;
 import software.amazon.awscdk.services.ec2.*;
 
 import java.util.Arrays;
 
-public class CdkDemoStack extends Stack {
+public class SharedStack extends Stack {
 
-    public CdkDemoStack(final Construct scope, final String id) {
+    private final CfnVPC cfnVpc;
+    private final CfnSubnet cfnSubnet;
+    private final CfnRouteTable cfnRouteTable;
+    private final CfnSecurityGroup cfnSecurityGroup;
+    private final String logicalId;
+
+    public SharedStack(final Construct scope, final String id, final String name) {
         this(scope, id, StackProps.builder()
             .env(Environment.builder()
                 .region("ap-southeast-2")
                 .build())
+            .stackName(name)
             .build());
     }
 
-    public CdkDemoStack(final Construct scope, final String id, final StackProps props) {
+    public SharedStack(final Construct scope, final String id, final StackProps props) {
         super(scope, id, props);
+        this.logicalId = id;
 
-        CfnVPC cfnVpc = CfnVPC.Builder.create(this, "DemoVpc")
+        this.cfnVpc = CfnVPC.Builder.create(this, id.equals("VPCDemo") ? id : format("VPC"))
             .cidrBlock("192.168.0.0/22")
             .enableDnsHostnames(true)
             .instanceTenancy("default")
@@ -28,7 +36,7 @@ public class CdkDemoStack extends Stack {
                 .build()))
             .build();
 
-        CfnSubnet cfnSubnet = CfnSubnet.Builder.create(this, "DemoSubnet")
+        this.cfnSubnet = CfnSubnet.Builder.create(this, format("Subnet"))
             .availabilityZone("ap-southeast-2a")
             .cidrBlock("192.168.0.0/24")
             .mapPublicIpOnLaunch(true)
@@ -39,7 +47,7 @@ public class CdkDemoStack extends Stack {
                 .build()))
             .build();
 
-        CfnRouteTable cfnRouteTable = CfnRouteTable.Builder.create(this, "DemoRouteTable")
+        this.cfnRouteTable = CfnRouteTable.Builder.create(this, format("RouteTable"))
             .vpcId(cfnVpc.getRef())
             .tags(Arrays.asList(CfnTag.builder()
                 .key("Name")
@@ -47,30 +55,30 @@ public class CdkDemoStack extends Stack {
                 .build()))
             .build();
 
-        CfnSubnetRouteTableAssociation.Builder.create(this, "DemoSubnetRouteTableLink")
+        CfnSubnetRouteTableAssociation.Builder.create(this, format("SubnetRouteTableLink"))
             .routeTableId(cfnRouteTable.getRef())
             .subnetId(cfnSubnet.getRef())
             .build();
 
-        CfnInternetGateway cfnInternetGateway = CfnInternetGateway.Builder.create(this, "DemoInternetGateway")
+        CfnInternetGateway cfnInternetGateway = CfnInternetGateway.Builder.create(this, format("InternetGateway"))
             .tags(Arrays.asList(CfnTag.builder()
                 .key("Name")
                 .value("igw-demo")
                 .build()))
             .build();
 
-        CfnVPCGatewayAttachment.Builder.create(this, "DemoInternetGatewayAttachment")
+        CfnVPCGatewayAttachment.Builder.create(this, format("InternetGatewayAttachment"))
             .internetGatewayId(cfnInternetGateway.getRef())
             .vpcId(cfnVpc.getRef())
             .build();
 
-        CfnRoute.Builder.create(this, "DemoRoute")
+        CfnRoute.Builder.create(this, format("Route"))
             .routeTableId(cfnRouteTable.getRef())
             .gatewayId(cfnInternetGateway.getRef())
             .destinationCidrBlock("0.0.0.0/0")
             .build();
 
-        CfnSecurityGroup cfnSecurityGroup = CfnSecurityGroup.Builder.create(this, "DemoSecurityGroup")
+        this.cfnSecurityGroup = CfnSecurityGroup.Builder.create(this, format("SecurityGroup"))
             .groupName("allow-http-ssh-traffic")
             .groupDescription("Allow web traffic on port 80 and ssh traffic on port 22")
             .securityGroupIngress(Arrays.asList(
@@ -90,28 +98,25 @@ public class CdkDemoStack extends Stack {
                     .build()))
             .vpcId(cfnVpc.getRef())
             .build();
+    }
 
-        UserData userData = UserData.forLinux(LinuxUserDataOptions.builder()
-            .shebang("!/bin/bash")
-            .build());
-        userData.addCommands(
-            "sudo apt-get update",
-            "sudo apt-get install nginx -y",
-            "sudo nginx"
-        );
+    public String format(String value) {
+        return String.format("%s%s", this.logicalId, value);
+    }
 
-        CfnInstance.Builder.create(this, "DemoEc2Instance")
-            .availabilityZone("ap-southeast-2a")
-            .imageId("ami-0a1a4d97d4af3009b") // Ubuntu, 20.04 LTS
-            .instanceType(InstanceType.of(InstanceClass.BURSTABLE2, InstanceSize.MICRO).toString())
-            .keyName("ec2-demo-instance")
-            .subnetId(cfnSubnet.getRef())
-            .securityGroupIds(Arrays.asList(cfnSecurityGroup.getRef()))
-            .tags(Arrays.asList(CfnTag.builder()
-                .key("Name")
-                .value("demo-instance")
-                .build()))
-            .userData(Fn.base64(userData.render()))
-            .build();
+    public CfnRouteTable getCfnRouteTable() {
+        return cfnRouteTable;
+    }
+
+    public CfnSecurityGroup getCfnSecurityGroup() {
+        return cfnSecurityGroup;
+    }
+
+    public CfnSubnet getCfnSubnet() {
+        return cfnSubnet;
+    }
+
+    public CfnVPC getCfnVpc() {
+        return cfnVpc;
     }
 }
